@@ -117,15 +117,13 @@ bool OpenTherm::sendResponse(unsigned long request)
 	return true;
 }
 
-OpenThermResponseStatus OpenTherm::getLastResponseStatus()
-{
+OpenThermResponseStatus OpenTherm::getLastResponseStatus() {
 	return responseStatus;
 }
 
-void ICACHE_RAM_ATTR OpenTherm::handleInterrupt()
-{
-	if (isReady())
-	{
+void ICACHE_RAM_ATTR OpenTherm::handleInterrupt() {
+	
+	if (isReady()) {
 		if (isSlave && readState() == HIGH) {
 		   status = OpenThermStatus::RESPONSE_WAITING;
 		}
@@ -135,6 +133,10 @@ void ICACHE_RAM_ATTR OpenTherm::handleInterrupt()
 	}
 
 	unsigned long newTs = micros();
+	const uint16_t pulseOrigin = 512;			// pulse standart length
+	const uint16_t pulseLenghtMin = 475;		// min pulse length (-10%) = 460 -> 475
+	const uint16_t pulseLenghtMax = 545;		// max pulse length (+15%) = 590 -> 545
+	
 	if (status == OpenThermStatus::RESPONSE_WAITING) {
 		if (readState() == HIGH) {
 			status = OpenThermStatus::RESPONSE_START_BIT;
@@ -146,33 +148,45 @@ void ICACHE_RAM_ATTR OpenTherm::handleInterrupt()
 		}
 	}
 	else if (status == OpenThermStatus::RESPONSE_START_BIT) {
-		if ((newTs - responseTimestamp < 750) && readState() == LOW) {
+		if ((newTs - responseTimestamp < pulseLenghtMin*2) && readState() == LOW) {
 			status = OpenThermStatus::RESPONSE_RECEIVING;
-			responseTimestamp = newTs;
+			//responseTimestamp = newTs;
 			responseBitIndex = 0;
 		}
 		else {
 			status = OpenThermStatus::RESPONSE_INVALID;
-			responseTimestamp = newTs;
+			//responseTimestamp = newTs;
 		}
+		//
+		if (newTs - responseTimestamp > pulseLenghtMax) {
+			responseTimestamp += pulseOrigin;
+		}
+		else
+			responseTimestamp = newTs;
 	}
 	else if (status == OpenThermStatus::RESPONSE_RECEIVING) {
-		if ((newTs - responseTimestamp) > 750) {
+		if ((newTs - responseTimestamp) > pulseLenghtMin*2) {
 			if (responseBitIndex < 32) {
 				response = (response << 1) | !readState();
-				responseTimestamp = newTs;
+				//responseTimestamp = newTs;
 				responseBitIndex++;
 			}
 			else { //stop bit
 				status = OpenThermStatus::RESPONSE_READY;
-				responseTimestamp = newTs;
+				//responseTimestamp = newTs;
 			}
+			//
+			if (newTs - responseTimestamp > pulseLenghtMax*2) {
+				responseTimestamp += pulseOrigin*2;
+			}
+			else
+				responseTimestamp = newTs;
 		}
 	}
 }
 
-void OpenTherm::process()
-{
+void OpenTherm::process() {
+	
 	noInterrupts();
 	OpenThermStatus st = status;
 	unsigned long ts = responseTimestamp;
