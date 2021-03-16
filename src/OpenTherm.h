@@ -16,13 +16,25 @@ P MGS-TYPE SPARE DATA-ID  DATA-VALUE
 #include <stdint.h>
 #include <Arduino.h>
 
+enum OpenThermStatus {
+	NOT_INITIALIZED,
+	READY,
+	DELAY,
+	REQUEST_SENDING,
+	RESPONSE_WAITING,
+	RESPONSE_START_BIT,
+	RESPONSE_RECEIVING,
+	RESPONSE_READY,
+	RESPONSE_INVALID
+};
+
 enum OpenThermResponseStatus {
 	NONE,
 	SUCCESS,
 	INVALID,
-	TIMEOUT
+	TIMEOUT,
+	INCOMPLETE
 };
-
 
 enum OpenThermMessageType {
 	/*  Master to Slave */
@@ -98,18 +110,6 @@ enum OpenThermMessageID {
 	SlaveVersion, // u8 / u8  Slave product version number and type
 };
 
-enum OpenThermStatus {
-	NOT_INITIALIZED,
-	READY,
-	DELAY,
-	REQUEST_SENDING,
-	RESPONSE_WAITING,
-	RESPONSE_START_BIT,
-	RESPONSE_RECEIVING,
-	RESPONSE_READY,
-	RESPONSE_INVALID
-};
-
 class OpenTherm
 {
 public:
@@ -120,13 +120,13 @@ public:
 	bool isReady();
 	unsigned long sendRequest(unsigned long request);
 	bool sendResponse(unsigned long request);
-	bool sendRequestAync(unsigned long request);
+	bool sendRequestAsync(unsigned long request);
 	unsigned long buildRequest(OpenThermMessageType type, OpenThermMessageID id, unsigned int data);
 	unsigned long buildResponse(OpenThermMessageType type, OpenThermMessageID id, unsigned int data);
 	OpenThermResponseStatus getLastResponseStatus();
 	const char *statusToString(OpenThermResponseStatus status);
 	void handleInterrupt();
-	void process();
+	void checkResponseStatus();
 	void end();
 
 	bool parity(unsigned long frame);

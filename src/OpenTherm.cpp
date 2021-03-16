@@ -65,7 +65,7 @@ void OpenTherm::sendBit(bool high) {
 	delayMicroseconds(500);
 }
 
-bool OpenTherm::sendRequestAync(unsigned long request)
+bool OpenTherm::sendRequestAsync(unsigned long request)
 {
 	//Serial.println("Request: " + String(request, HEX));
 	noInterrupts();
@@ -134,8 +134,8 @@ void ICACHE_RAM_ATTR OpenTherm::handleInterrupt() {
 
 	unsigned long newTs = micros();
 	const uint16_t pulseOrigin = 512;			// pulse standart length
-	const uint16_t pulseLenghtMin = 475;		// min pulse length (-10%) = 460 -> 475
-	const uint16_t pulseLenghtMax = 545;		// max pulse length (+15%) = 590 -> 545
+	const uint16_t pulseLenghtMin = 480;		// min pulse length (-10%) = 460 -> 480
+	const uint16_t pulseLenghtMax = 540;		// max pulse length (+15%) = 590 -> 540
 	
 	if (status == OpenThermStatus::RESPONSE_WAITING) {
 		if (readState() == HIGH) {
@@ -185,7 +185,7 @@ void ICACHE_RAM_ATTR OpenTherm::handleInterrupt() {
 	}
 }
 
-void OpenTherm::process() {
+void OpenTherm::checkResponseStatus() {			// process()
 	
 	noInterrupts();
 	OpenThermStatus st = status;
@@ -201,9 +201,11 @@ void OpenTherm::process() {
 			processResponseCallback(response, responseStatus);
 		}
 	}
-	else if (st == OpenThermStatus::RESPONSE_INVALID) {
-		status = OpenThermStatus::DELAY;
-		responseStatus = OpenThermResponseStatus::INVALID;
+	else if (st == OpenThermStatus::RESPONSE_INVALID) {			// start bit failed
+		//status = OpenThermStatus::DELAY;
+		//responseStatus = OpenThermResponseStatus::INVALID;
+		status = OpenThermStatus::RESPONSE_WAITING;				// let's try again
+		responseStatus = OpenThermResponseStatus::NONE;
 		if (processResponseCallback != NULL) {
 			processResponseCallback(response, responseStatus);
 		}
