@@ -79,7 +79,7 @@ void loop() {
     bool enableCooling = false;
 	byte boiler_setpoint = 64;
 	
-	ot.process();
+	ot.checkResponseStatus();
 	
 	static byte requestCounter = 0;
 	unsigned long request;
@@ -101,7 +101,7 @@ void loop() {
 				break;
 		}
 		
-		if (ot.sendRequestAync(request))
+		if (ot.sendRequestAsync(request))
 			requestCounter++;
 		
 	}
