@@ -133,9 +133,6 @@ void ICACHE_RAM_ATTR OpenTherm::handleInterrupt() {
 	}
 
 	unsigned long newTs = micros();
-	const uint16_t pulseOrigin = 512;			// pulse standart length
-	const uint16_t pulseLenghtMin = 480;		// min pulse length (-10%) = 460 -> 480
-	const uint16_t pulseLenghtMax = 540;		// max pulse length (+15%) = 590 -> 540
 	
 	if (status == OpenThermStatus::RESPONSE_WAITING) {
 		if (readState() == HIGH) {
@@ -148,7 +145,7 @@ void ICACHE_RAM_ATTR OpenTherm::handleInterrupt() {
 		}
 	}
 	else if (status == OpenThermStatus::RESPONSE_START_BIT) {
-		if ((newTs - responseTimestamp < pulseLenghtMin*2) && readState() == LOW) {
+		if ((newTs - responseTimestamp < 950) && readState() == LOW) {
 			status = OpenThermStatus::RESPONSE_RECEIVING;
 			//responseTimestamp = newTs;
 			responseBitIndex = 0;
@@ -158,14 +155,14 @@ void ICACHE_RAM_ATTR OpenTherm::handleInterrupt() {
 			//responseTimestamp = newTs;
 		}
 		//
-		if (newTs - responseTimestamp > pulseLenghtMax) {
-			responseTimestamp += pulseOrigin;
+		if (newTs - responseTimestamp > 560) {
+			responseTimestamp += 512;
 		}
 		else
 			responseTimestamp = newTs;
 	}
 	else if (status == OpenThermStatus::RESPONSE_RECEIVING) {
-		if ((newTs - responseTimestamp) > pulseLenghtMin*2) {
+		if ((newTs - responseTimestamp) > 950) {
 			if (responseBitIndex < 32) {
 				response = (response << 1) | !readState();
 				//responseTimestamp = newTs;
@@ -176,8 +173,8 @@ void ICACHE_RAM_ATTR OpenTherm::handleInterrupt() {
 				//responseTimestamp = newTs;
 			}
 			//
-			if (newTs - responseTimestamp > pulseLenghtMax*2) {
-				responseTimestamp += pulseOrigin*2;
+			if (newTs - responseTimestamp > 1030) {
+				responseTimestamp += 1024;
 			}
 			else
 				responseTimestamp = newTs;
