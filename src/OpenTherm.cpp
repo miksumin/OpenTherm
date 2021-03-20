@@ -145,6 +145,7 @@ void ICACHE_RAM_ATTR OpenTherm::handleInterrupt() {
 		}
 	}
 	else if (status == OpenThermStatus::RESPONSE_START_BIT) {
+
 		if ((newTs - responseTimestamp < 950) && readState() == LOW) {
 			status = OpenThermStatus::RESPONSE_RECEIVING;
 			//responseTimestamp = newTs;
@@ -155,14 +156,16 @@ void ICACHE_RAM_ATTR OpenTherm::handleInterrupt() {
 			//responseTimestamp = newTs;
 		}
 		//
-		if (newTs - responseTimestamp > 560) {
+		if (newTs - responseTimestamp > 520) {
 			responseTimestamp += 512;
 		}
 		else
 			responseTimestamp = newTs;
+
 	}
 	else if (status == OpenThermStatus::RESPONSE_RECEIVING) {
-		if ((newTs - responseTimestamp) > 950) {
+		
+		if ((newTs - responseTimestamp) > 970) {
 			if (responseBitIndex < 32) {
 				response = (response << 1) | !readState();
 				//responseTimestamp = newTs;
