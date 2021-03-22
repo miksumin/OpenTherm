@@ -354,7 +354,7 @@ String ot_test_ids() {
 	request = ot.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::Texhaust, 0x0000);
 	response = ot.sendRequest(request);
 	if (checkResult(response, result1)) {
-		result += "Data: " + String(response & 0xFFFF)+"<br>";
+		result += "Data: " + String((response >> 8) & 0xFF) + "." + String(response & 0xFF)+"<br>";
 	}
 	else result += String(result1);
 	//
