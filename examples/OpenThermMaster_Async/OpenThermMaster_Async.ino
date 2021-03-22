@@ -1,8 +1,8 @@
 
 /*
-OpenTherm Master Communication Example
-By: Ihor Melnyk
-Date: January 19th, 2018
+OpenTherm Master Async Communication Example
+By: Mikhail Sumin
+Date: January, 2021
 
 Uses the OpenTherm library to get/set boiler status and water temperature
 Open serial monitor at 115200 baud to see output.
@@ -56,14 +56,14 @@ void responseCallback(unsigned long response, OpenThermResponseStatus responseSt
 		if (responseStatus == OpenThermResponseStatus::TIMEOUT)
 			Serial.println("Request timeout");
 		if (responseStatus == OpenThermResponseStatus::INVALID)
-			Serial.printf("Response invalid : 0x%08X\r\n", response);
+			Serial.printf("Response invalid: 0x%08X\r\n", response);
 	}
 	
 }
 
 void setup() {
 	
-    Serial.begin(9600);
+    Serial.begin(115200);
     Serial.println("Start");
 
     ot.begin(handleInterrupt, responseCallback);
