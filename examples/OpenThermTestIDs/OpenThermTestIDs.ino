@@ -260,7 +260,7 @@ void loop() {
 	request = ot.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::Texhaust, 0x0000);
 	response = ot.sendRequest(request);
 	if (checkResult(response)) {
-		Serial.println("Data: " + String(response & 0xFFFF));
+		Serial.println("Data: " + String((response >> 8) & 0xFF) + "." + String(response & 0xFF));
 	}
 	//
 	ID = 116;	// Burner starts (u16)
